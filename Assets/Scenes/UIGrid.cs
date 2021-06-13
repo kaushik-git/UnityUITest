@@ -1,21 +1,17 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class UIGrid : MonoBehaviour
+public class UIGrid : MonoBehaviour, IRecyclableScrollRectDataSource
 {
-
+    public RecyclableScrollRect scroll;
     public int noOfCells = 42;
     public int aOI = 1;
-    public GameObject cellPrefab;
-    public Transform cellParent;
 
     private static UIGrid instance;
     private const int noOfColumns = 5;
     private CellData[] m_cellData;
-    private UICell[] m_cells;
-    private HashSet<CellData> m_selectedCells;
-    private Point2[] m_neighbourOffsets;
-
+    private HashSet<CellData> m_selectedCells;      // contails list of selected cells
+    private Point2[] m_neighbourOffsets;            // Data structure to find neighbours
 
 
     public static UIGrid GetInstance
@@ -30,7 +26,8 @@ public class UIGrid : MonoBehaviour
 
     void Start()
     {
-        m_neighbourOffsets = new Point2[] {
+        m_neighbourOffsets = new Point2[] 
+        {
             new Point2(-1,-1),    // top left
             new Point2(0,-1),     // top center
             new Point2(1,-1),     // top right
@@ -39,42 +36,38 @@ public class UIGrid : MonoBehaviour
             new Point2(-1,1),     // bottom left
             new Point2(0,1),      // bottom
             new Point2(1,1)       // bottom right
-
         };
-        CreateGrid(noOfCells);
+
+        CreateCellData(noOfCells);
+
+        scroll.DataSource = this;
+        scroll.Initialize(this);
     }
 
-    public void CreateGrid(int cellCount)
+    public void CreateCellData(int cellCount)
     {
         m_cellData = new CellData[noOfCells];
-        m_cells = new UICell[noOfCells];
+
         for (int i = 0; i < noOfCells; i++)
         {
-            CellData cData = new CellData(i, new Point2(i % noOfColumns, i / noOfColumns), GetRandomColorData());
+            Point2 gridPos = new Point2(i % noOfColumns, i / noOfColumns);
+            CellData cData = new CellData(i, gridPos , GetRandomColorData());
             m_cellData[i] = cData;
-
-            GameObject go = Instantiate(cellPrefab);
-            m_cells[i] = go.GetComponent<UICell>();
-            m_cells[i].SetData(i);
-
-            go.transform.SetParent(cellParent, false);
         }
     }
 
     public void CellClicked(int cellId)
     {
-        m_cells[cellId].SetSelected(m_cellData[cellId].colData);
-
         ClearPrevCells();
 
         m_selectedCells = GetNeighbours(m_cellData[cellId].position, aOI);
         m_selectedCells.Add(m_cellData[cellId]);
-        Debug.Log(m_selectedCells.Count);
         foreach (CellData c in m_selectedCells)
         {
-            if (m_cells[c.index] != null)
+            UICell uiCell = scroll.GetCell(c.index) as UICell;
+            if (uiCell != null)
             {
-                m_cells[c.index].SetSelected(c.colData);
+                uiCell.SetSelected(c.colData);
             }
         }
     }
@@ -120,7 +113,7 @@ public class UIGrid : MonoBehaviour
         {
             foreach (CellData c in m_selectedCells)
             {
-                UICell uiCell = m_cells[c.index];
+                UICell uiCell = scroll.GetCell(c.index) as UICell;
                 if (uiCell != null)
                 {
                     uiCell.SetToNormal();
@@ -157,6 +150,22 @@ public class UIGrid : MonoBehaviour
     private int GetIndexFromGridPos(Point2 pos)
     {
         return pos.y * noOfColumns + pos.x;
+    }
+
+    public int GetItemCount()
+    {
+        return noOfCells;
+    }
+
+    public void SetCell(ICell cell, int index)
+    {
+        UICell c = cell as UICell;
+        
+        c.SetData(index);
+        if (m_selectedCells != null && m_selectedCells.Contains(m_cellData[index]))
+        {
+            c.SetSelected(m_cellData[index].colData);
+        }
     }
 }
 

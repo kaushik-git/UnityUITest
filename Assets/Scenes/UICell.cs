@@ -4,14 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Image))]
-public class UICell : MonoBehaviour
+public class UICell : MonoBehaviour, ICell
 {
 
     public Image image;
     public Text text;
 
     private int m_cellId;
-    private Color m_colValue;
 
     public void SetData(int cellId)
     {
