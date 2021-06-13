@@ -24,9 +24,12 @@ public class UIGrid : MonoBehaviour, IRecyclableScrollRectDataSource
         }
     }
 
-    void Start()
+    public void PopulateGrid(int noOfCells, int aOI)
     {
-        m_neighbourOffsets = new Point2[] 
+        this.noOfCells = noOfCells;
+        this.aOI = aOI;
+
+        m_neighbourOffsets = new Point2[]
         {
             new Point2(-1,-1),    // top left
             new Point2(0,-1),     // top center
