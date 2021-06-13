@@ -5,6 +5,7 @@ public class UIGrid : MonoBehaviour, IRecyclableScrollRectDataSource
 {
     public RecyclableScrollRect scroll;
     public int noOfCells = 42;
+    [Range(1,5)]
     public int aOI = 1;
 
     private static UIGrid instance;
@@ -22,6 +23,11 @@ public class UIGrid : MonoBehaviour, IRecyclableScrollRectDataSource
                 instance = GameObject.FindObjectOfType<UIGrid>();
             return instance;
         }
+    }
+
+    private void Start()
+    {
+        PopulateGrid(noOfCells, aOI);
     }
 
     public void PopulateGrid(int noOfCells, int aOI)
@@ -47,7 +53,7 @@ public class UIGrid : MonoBehaviour, IRecyclableScrollRectDataSource
         scroll.Initialize(this);
     }
 
-    public void CreateCellData(int cellCount)
+    private void CreateCellData(int cellCount)
     {
         m_cellData = new CellData[noOfCells];
 
@@ -62,7 +68,7 @@ public class UIGrid : MonoBehaviour, IRecyclableScrollRectDataSource
     public void CellClicked(int cellId)
     {
         ClearPrevCells();
-
+        
         m_selectedCells = GetNeighbours(m_cellData[cellId].position, aOI);
         m_selectedCells.Add(m_cellData[cellId]);
         foreach (CellData c in m_selectedCells)
@@ -74,8 +80,8 @@ public class UIGrid : MonoBehaviour, IRecyclableScrollRectDataSource
             }
         }
     }
-
-    public HashSet<CellData> GetNeighbours(Point2 fromCellPos, int aOI)
+    
+    private HashSet<CellData> GetNeighbours(Point2 fromCellPos, int aOI)
     {
         HashSet<CellData> h_neighbours = new HashSet<CellData>();
         HashSet<CellData> h_closedCell = new HashSet<CellData>();
@@ -109,7 +115,7 @@ public class UIGrid : MonoBehaviour, IRecyclableScrollRectDataSource
         }
         return h_neighbours;
     }
-
+   
     private void ClearPrevCells()
     {
         if (m_selectedCells != null)
@@ -125,10 +131,11 @@ public class UIGrid : MonoBehaviour, IRecyclableScrollRectDataSource
             m_selectedCells.Clear();
             m_selectedCells = null;
         }
+       
     }
 
 
-    public ColorData GetRandomColorData()
+    private ColorData GetRandomColorData()
     {
         return new ColorData(UnityEngine.Random.Range(0, 256),
                 UnityEngine.Random.Range(0, 256),
